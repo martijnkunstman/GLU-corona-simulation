@@ -1,0 +1,23 @@
+{
+  "name": "glu-cc-typescript-oop",
+  "version": "1.0.0",
+  "description": "Corona Challenge in TypeScript - object oriented approach",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martijnkunstman/GLU-cc-typescript-oop.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/martijnkunstman/GLU-cc-typescript-oop/issues"
+  },
+  "homepage": "https://github.com/martijnkunstman/GLU-cc-typescript-oop#readme",
+  "dependencies": {
+    "typescript": "^3.9.3"
+  }
+}
