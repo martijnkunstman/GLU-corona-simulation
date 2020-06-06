@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/martijnkunstman/GLU-cc-typescript-oop#readme",
   "dependencies": {
+    "@types/chart.js": "^2.9.21",
+    "chart.js": "^2.9.3",
     "typescript": "^3.9.3"
   }
 }

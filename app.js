@@ -4,16 +4,73 @@
 //
 var World = /** @class */ (function () {
     function World(width, height, denisty, framerate) {
+        this.graphData = [];
         this.width = width;
         this.height = height;
         this.denisty = denisty;
         this.personCount = Math.round(width * height * denisty);
         console.log("person count:" + this.personCount);
-        this.temp = 0;
         this.persons = [];
         this.framerate = 1000 / framerate;
     }
     World.prototype.init = function () {
+        var body = document.getElementsByTagName("body")[0];
+        var canvasChart = document.createElement('canvas');
+        canvasChart.id = "chart";
+        canvasChart.width = 700;
+        canvasChart.height = 700;
+        canvasChart.style.zIndex = "2";
+        canvasChart.style.position = "absolute";
+        canvasChart.style.border = "1px solid";
+        canvasChart.style.marginLeft = this.width + "px";
+        body.appendChild(canvasChart);
+        this.chart = new Chart(canvasChart, {
+            type: 'bar',
+            data: {
+                labels: ["0", "1", "3"],
+                datasets: [{
+                        barPercentage: 1,
+                        label: 'uninfected',
+                        data: [1, 2, 3],
+                        backgroundColor: '#0000ff'
+                    },
+                    {
+                        barPercentage: 1,
+                        label: 'infected',
+                        data: [2, 3, 4],
+                        backgroundColor: '#ffff00'
+                    },
+                    {
+                        barPercentage: 1,
+                        label: 'deceased',
+                        data: [4, 5, 6],
+                        backgroundColor: '#ff0000'
+                    },
+                    {
+                        barPercentage: 1,
+                        label: 'recovered',
+                        data: [6, 7, 8],
+                        backgroundColor: '#00ff00'
+                    }]
+            },
+            options: {
+                tooltips: { enabled: false },
+                hover: { mode: null },
+                animation: {
+                    duration: 0
+                },
+                responsiveAnimationDuration: 0,
+                responsive: false,
+                scales: {
+                    xAxes: [{
+                            stacked: true,
+                        }],
+                    yAxes: [{
+                            stacked: true,
+                        }]
+                }
+            }
+        });
         var canvas = document.createElement('canvas');
         canvas.id = "canvas";
         canvas.width = this.width;
@@ -21,10 +78,13 @@ var World = /** @class */ (function () {
         canvas.style.zIndex = "1";
         canvas.style.position = "absolute";
         canvas.style.border = "1px solid";
-        var body = document.getElementsByTagName("body")[0];
         body.appendChild(canvas);
+        var div = document.createElement('div');
+        div.id = "info";
+        body.appendChild(div);
+        document.getElementById("info").innerHTML = "persons: " + this.personCount;
         for (var a = 0; a < this.personCount; a++) {
-            var person = new Person(randomIntFromInterval(0, this.width), randomIntFromInterval(0, this.height), this.width, this.height, this.infection, "uninfected");
+            var person = new Person(randomIntFromInterval(0, this.width), randomIntFromInterval(0, this.height), this.width, this.height, this.infection, this.mobility, "uninfected");
             this.persons.push(person);
         }
         this.persons[0].state = "infected";
@@ -32,31 +92,77 @@ var World = /** @class */ (function () {
     };
     World.prototype.animationStep = function () {
         var _this = this;
+        var runAnimation = false;
+        //
+        var uninfected = 0;
+        var infected = 0;
+        var deceased = 0;
+        var recovered = 0;
+        //
         var canvas = document.getElementById("canvas");
         var ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, this.width, this.height);
         for (var a = 0; a < this.persons.length; a++) {
             for (var b = 0; b < this.persons.length; b++) {
                 if (this.persons[a].state == "infected") {
-                    if (this.persons[a].xPosition == this.persons[b].xPosition) {
-                        if (this.persons[a].yPosition == this.persons[b].yPosition) {
+                    runAnimation = true;
+                    var dist = Math.sqrt(Math.pow((this.persons[a].xPosition - this.persons[b].xPosition), 2) + Math.pow((this.persons[a].yPosition - this.persons[b].yPosition), 2));
+                    if (dist < this.persons[a].infection.reach) {
+                        if (this.persons[b].state == "uninfected") {
                             this.persons[b].state = "infected";
                         }
                     }
                 }
             }
+            if (this.persons[a].state == "uninfected") {
+                uninfected++;
+            }
+            if (this.persons[a].state == "infected") {
+                infected++;
+            }
+            if (this.persons[a].state == "deceased") {
+                deceased++;
+            }
+            if (this.persons[a].state == "recovered") {
+                recovered++;
+            }
         }
+        this.graphData.push({ "uninfected": uninfected, "infected": infected, "deceased": deceased, "recovered": recovered });
+        //convert data
+        var labels = [];
+        var uninfectedArray = [];
+        var infectedArray = [];
+        var deceasedArray = [];
+        var recoveredArray = [];
+        for (var a = 0; a < this.graphData.length; a++) {
+            labels.push(a + "");
+            uninfectedArray.push(this.graphData[a].uninfected);
+            infectedArray.push(this.graphData[a].infected);
+            deceasedArray.push(this.graphData[a].deceased);
+            recoveredArray.push(this.graphData[a].recovered);
+        }
+        labels = convertArrayLenght(labels, 20);
+        uninfectedArray = convertArrayLenght(uninfectedArray, 20);
+        infectedArray = convertArrayLenght(infectedArray, 20);
+        deceasedArray = convertArrayLenght(deceasedArray, 20);
+        recoveredArray = convertArrayLenght(recoveredArray, 20);
+        this.chart.data.labels = labels;
+        this.chart.data.datasets[0].data = uninfectedArray;
+        this.chart.data.datasets[1].data = infectedArray;
+        this.chart.data.datasets[2].data = deceasedArray;
+        this.chart.data.datasets[3].data = recoveredArray;
+        this.chart.update();
         for (var a = 0; a < this.persons.length; a++) {
+            this.persons[a].stateChange();
             this.persons[a].move();
             this.persons[a].draw(ctx);
         }
-        this.temp++;
-        setTimeout(function () {
-            _this.animationStep();
-            console.log(_this.temp);
-        }, this.framerate);
+        if (runAnimation) {
+            setTimeout(function () {
+                _this.animationStep();
+            }, this.framerate);
+        }
     };
-    ;
     return World;
 }());
 var Infection = /** @class */ (function () {
@@ -75,19 +181,23 @@ var Mobility = /** @class */ (function () {
     return Mobility;
 }());
 var Person = /** @class */ (function () {
-    function Person(xPosition, yPosition, xPositionMax, yPositionMax, infection, state) {
+    function Person(xPosition, yPosition, xPositionMax, yPositionMax, infection, mobility, state) {
         if (state === void 0) { state = "uninfected"; }
+        this.infectionCounter = 0;
+        this.moveStep = 0;
+        this.size = 5;
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.infection = infection;
         this.xPositionMax = xPositionMax;
         this.yPositionMax = yPositionMax;
+        this.mobility = mobility;
         this.state = state;
     }
     Person.prototype.move = function () {
         if (this.state != "deceased") {
-            this.xPosition = this.xPosition - randomIntFromInterval(-10, 10);
-            this.yPosition = this.yPosition - randomIntFromInterval(-10, 10);
+            this.xPosition = this.xPosition + this.xMove;
+            this.yPosition = this.yPosition + this.yMove;
             if (this.xPosition < 0) {
                 this.xPosition = this.xPositionMax + this.xPosition;
             }
@@ -102,42 +212,72 @@ var Person = /** @class */ (function () {
             }
         }
     };
-    Person.prototype.setState = function (state) {
-        this.state = state;
+    Person.prototype.stateChange = function () {
+        // if target is reached create a new target
+        if (this.moveStep == 0) {
+            var angle = Math.random() * Math.PI * 2;
+            this.xMove = Math.sin(angle) * this.mobility.speed;
+            this.yMove = Math.cos(angle) * this.mobility.speed;
+        }
+        this.moveStep++;
+        if (this.moveStep > this.mobility.distance / this.mobility.speed) {
+            this.moveStep = 0;
+        }
+        //
+        if (this.infectionCounter > this.infection.duration) {
+            this.state = "recovered";
+        }
+        if (this.state == "infected") {
+            this.infectionCounter++;
+            var d = Math.random();
+            if (d < this.infection.mortality / this.infection.duration) {
+                this.state = "deceased";
+            }
+        }
     };
     Person.prototype.draw = function (ctx) {
         ctx.beginPath();
-        ctx.arc(this.xPosition, this.yPosition, this.infection.reach, 0, 360);
+        ctx.arc(this.xPosition, this.yPosition, this.size, 0, 360);
         ctx.stroke();
         if (this.state == "uninfected") {
-            ctx.fillStyle = "blue";
+            ctx.fillStyle = "#0000ff";
         }
         if (this.state == "infected") {
-            ctx.fillStyle = "orange";
+            ctx.fillStyle = "#ffff00";
         }
         if (this.state == "recovered") {
-            ctx.fillStyle = "green";
+            ctx.fillStyle = "#00ff00";
         }
         if (this.state == "deceased") {
-            ctx.fillStyle = "red";
+            ctx.fillStyle = "#ff0000";
         }
         ctx.fill();
+        ctx.beginPath();
+        ctx.arc(this.xPosition, this.yPosition, this.infection.reach, 0, 360);
+        ctx.stroke();
     };
     return Person;
 }());
 //
-// helper functiona
+// helper functions
 //
 function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+function convertArrayLenght(inputArray, length) {
+    var myNewArray = [];
+    for (var a = 0; a < length; a++) {
+        myNewArray.push(inputArray[Math.round(a / length * inputArray.length)]);
+    }
+    return myNewArray;
 }
 //
 // let's do it...
 //
 var speed = 30;
-var world = new World(200, 200, 0.01, speed);
-var infection = new Infection(10, 0.05, 5);
-var mobility = new Mobility(1, 10);
+var world = new World(700, 700, 0.0003, speed); // width, height, density, framerate
+var infection = new Infection(100, 0.05, 15); // duration, mortality, reach
+var mobility = new Mobility(2, 200); // speed, distance
 world.infection = infection;
 world.mobility = mobility;
 world.init();
