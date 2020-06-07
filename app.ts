@@ -342,9 +342,9 @@ function convertArrayLenght(inputArray: any, length: number): any {
 //
 let framerate: number = 30
 let personSize: number = 3;
-let world = new World(700, 700, 0.002, framerate, personSize) // width, height, density, framerate, personSize
-let infection = new Infection(200, 0.15, 10) // duration, mortality, reach
-let mobility = new Mobility(1, 50) // speed, distance
+let world = new World(700, 700, 0.005, framerate, personSize) // width, height, density, framerate, personSize
+let infection = new Infection(35, 0.33, 7) // duration, mortality, reach
+let mobility = new Mobility(1, 12) // speed, distance
 world.infection = infection
 world.mobility = mobility
 world.init()
