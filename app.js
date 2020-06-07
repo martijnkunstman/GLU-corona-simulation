@@ -3,15 +3,15 @@
 // classes
 //
 var World = /** @class */ (function () {
-    function World(width, height, denisty, framerate) {
+    function World(width, height, denisty, framerate, personSize) {
         this.graphData = [];
         this.width = width;
         this.height = height;
         this.denisty = denisty;
         this.personCount = Math.round(width * height * denisty);
-        console.log("person count:" + this.personCount);
         this.persons = [];
         this.framerate = 1000 / framerate;
+        this.personSize = personSize;
     }
     World.prototype.init = function () {
         var body = document.getElementsByTagName("body")[0];
@@ -29,6 +29,7 @@ var World = /** @class */ (function () {
             data: {
                 datasets: [{
                         barPercentage: 1,
+                        lineTension: 0,
                         pointRadius: 0,
                         label: 'uninfected',
                         data: [],
@@ -36,13 +37,15 @@ var World = /** @class */ (function () {
                     },
                     {
                         barPercentage: 1,
+                        lineTension: 0,
                         pointRadius: 0,
                         label: 'infected',
                         data: [],
-                        backgroundColor: '#ffff00'
+                        backgroundColor: '#ffaf00'
                     },
                     {
                         barPercentage: 1,
+                        lineTension: 0,
                         pointRadius: 0,
                         label: 'deceased',
                         data: [],
@@ -50,10 +53,11 @@ var World = /** @class */ (function () {
                     },
                     {
                         barPercentage: 1,
+                        lineTension: 0,
                         pointRadius: 0,
                         label: 'recovered',
                         data: [],
-                        backgroundColor: '#00ff00'
+                        backgroundColor: '#00ff00',
                     }]
             },
             options: {
@@ -61,6 +65,11 @@ var World = /** @class */ (function () {
                 hover: { mode: null },
                 animation: {
                     duration: 0
+                },
+                elements: {
+                    line: {
+                        cubicInterpolationMode: 'monotone'
+                    }
                 },
                 responsiveAnimationDuration: 0,
                 responsive: false,
@@ -87,7 +96,7 @@ var World = /** @class */ (function () {
         body.appendChild(div);
         document.getElementById("info").innerHTML = "persons: " + this.personCount;
         for (var a = 0; a < this.personCount; a++) {
-            var person = new Person(randomIntFromInterval(0, this.width), randomIntFromInterval(0, this.height), this.width, this.height, this.infection, this.mobility, "uninfected");
+            var person = new Person(randomIntFromInterval(0, this.width), randomIntFromInterval(0, this.height), this.width, this.height, this.infection, this.mobility, "uninfected", this.personSize);
             this.persons.push(person);
         }
         this.persons[0].state = "infected";
@@ -110,7 +119,7 @@ var World = /** @class */ (function () {
                 if (this.persons[a].state == "infected") {
                     runAnimation = true;
                     var dist = Math.sqrt(Math.pow((this.persons[a].xPosition - this.persons[b].xPosition), 2) + Math.pow((this.persons[a].yPosition - this.persons[b].yPosition), 2));
-                    if (dist < this.persons[a].infection.reach) {
+                    if (dist < this.persons[a].infection.reach + this.persons[a].size) {
                         if (this.persons[b].state == "uninfected") {
                             this.persons[b].state = "infected";
                         }
@@ -191,11 +200,10 @@ var Mobility = /** @class */ (function () {
     return Mobility;
 }());
 var Person = /** @class */ (function () {
-    function Person(xPosition, yPosition, xPositionMax, yPositionMax, infection, mobility, state) {
+    function Person(xPosition, yPosition, xPositionMax, yPositionMax, infection, mobility, state, personSize) {
         if (state === void 0) { state = "uninfected"; }
         this.infectionCounter = 0;
         this.moveStep = 0;
-        this.size = 5;
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.infection = infection;
@@ -203,6 +211,7 @@ var Person = /** @class */ (function () {
         this.yPositionMax = yPositionMax;
         this.mobility = mobility;
         this.state = state;
+        this.size = personSize;
     }
     Person.prototype.move = function () {
         if (this.state != "deceased") {
@@ -248,23 +257,27 @@ var Person = /** @class */ (function () {
     Person.prototype.draw = function (ctx) {
         ctx.beginPath();
         ctx.arc(this.xPosition, this.yPosition, this.size, 0, 360);
+        ctx.strokeStyle = "rgba(0,0,0,5)";
         ctx.stroke();
         if (this.state == "uninfected") {
-            ctx.fillStyle = "#0000ff";
+            ctx.fillStyle = "rgba(0,0,255,0.5)";
         }
         if (this.state == "infected") {
-            ctx.fillStyle = "#ffff00";
+            ctx.fillStyle = "rgba(255,175,0,0.5)";
         }
         if (this.state == "recovered") {
-            ctx.fillStyle = "#00ff00";
+            ctx.fillStyle = "rgba(0,255,0,0.5)";
         }
         if (this.state == "deceased") {
-            ctx.fillStyle = "#ff0000";
+            ctx.fillStyle = "rgba(255,0,0,0.5)";
         }
         ctx.fill();
-        ctx.beginPath();
-        ctx.arc(this.xPosition, this.yPosition, this.infection.reach, 0, 360);
-        ctx.stroke();
+        if (this.state == "infected") {
+            ctx.beginPath();
+            ctx.arc(this.xPosition, this.yPosition, this.infection.reach, 0, 360);
+            ctx.fillStyle = "rgba(255,175,0,0.5)";
+            ctx.fill();
+        }
     };
     return Person;
 }());
@@ -275,7 +288,7 @@ function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 function convertArrayLenght(inputArray, length) {
-    //return inputArray    
+    return inputArray;
     var myNewArray = [];
     for (var a = 0; a < length; a++) {
         myNewArray.push(inputArray[Math.round(a / length * inputArray.length)]);
@@ -285,10 +298,11 @@ function convertArrayLenght(inputArray, length) {
 //
 // let's do it...
 //
-var speed = 30;
-var world = new World(700, 700, 0.0006, speed); // width, height, density, framerate
-var infection = new Infection(200, 0.15, 20); // duration, mortality, reach
-var mobility = new Mobility(4, 50); // speed, distance
+var framerate = 15;
+var personSize = 20;
+var world = new World(700, 700, 0.0001, framerate, personSize); // width, height, density, framerate, personSize
+var infection = new Infection(200, 0.15, 50); // duration, mortality, reach
+var mobility = new Mobility(1, 50); // speed, distance
 world.infection = infection;
 world.mobility = mobility;
 world.init();
