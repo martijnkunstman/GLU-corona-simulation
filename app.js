@@ -5,6 +5,7 @@
 var World = /** @class */ (function () {
     function World(width, height, denisty, framerate, personSize) {
         this.graphData = [];
+        this.first = 0;
         this.width = width;
         this.height = height;
         this.denisty = denisty;
@@ -99,12 +100,19 @@ var World = /** @class */ (function () {
             var person = new Person(randomIntFromInterval(0, this.width), randomIntFromInterval(0, this.height), this.width, this.height, this.infection, this.mobility, "uninfected", this.personSize);
             this.persons.push(person);
         }
-        this.persons[0].state = "infected";
         this.animationStep();
     };
     World.prototype.animationStep = function () {
         var _this = this;
         var runAnimation = false;
+        this.first++;
+        if (this.first == 2) {
+            this.persons[0].state = "infected";
+        }
+        //
+        if (this.first < 3) {
+            runAnimation = true;
+        }
         //
         var uninfected = 0;
         var infected = 0;
@@ -153,11 +161,12 @@ var World = /** @class */ (function () {
             deceasedArray.push(this.graphData[a].deceased);
             recoveredArray.push(this.graphData[a].recovered);
         }
-        labels = convertArrayLenght(labels, 20);
-        uninfectedArray = convertArrayLenght(uninfectedArray, 20);
-        infectedArray = convertArrayLenght(infectedArray, 20);
-        deceasedArray = convertArrayLenght(deceasedArray, 20);
-        recoveredArray = convertArrayLenght(recoveredArray, 20);
+        var xaxisstep = 15;
+        labels = convertArrayLenght(labels, xaxisstep);
+        uninfectedArray = convertArrayLenght(uninfectedArray, xaxisstep);
+        infectedArray = convertArrayLenght(infectedArray, xaxisstep);
+        deceasedArray = convertArrayLenght(deceasedArray, xaxisstep);
+        recoveredArray = convertArrayLenght(recoveredArray, xaxisstep);
         this.chart.data.labels = labels;
         this.chart.data.datasets[0].data = uninfectedArray;
         this.chart.data.datasets[1].data = infectedArray;
@@ -288,20 +297,21 @@ function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 function convertArrayLenght(inputArray, length) {
-    return inputArray;
+    //return inputArray    
     var myNewArray = [];
     for (var a = 0; a < length; a++) {
-        myNewArray.push(inputArray[Math.round(a / length * inputArray.length)]);
+        myNewArray.push(inputArray[Math.floor(a / length * inputArray.length)]);
     }
+    myNewArray.push(inputArray[Math.ceil(inputArray.length - 1)]);
     return myNewArray;
 }
 //
 // let's do it...
 //
-var framerate = 15;
-var personSize = 20;
-var world = new World(700, 700, 0.0001, framerate, personSize); // width, height, density, framerate, personSize
-var infection = new Infection(200, 0.15, 50); // duration, mortality, reach
+var framerate = 30;
+var personSize = 3;
+var world = new World(700, 700, 0.002, framerate, personSize); // width, height, density, framerate, personSize
+var infection = new Infection(200, 0.15, 10); // duration, mortality, reach
 var mobility = new Mobility(1, 50); // speed, distance
 world.infection = infection;
 world.mobility = mobility;
