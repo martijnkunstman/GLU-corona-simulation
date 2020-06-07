@@ -10,8 +10,8 @@ class World {
     public framerate: number
     private personCount: number
     private persons: any
-    private graphData: any = [];
-    public chart: Chart;
+    private graphData: any = []
+    public chart: Chart
 
     constructor(width: number, height: number, denisty: number, framerate: number) {
         this.width = width
@@ -24,7 +24,7 @@ class World {
     }
     init() {
         let body = document.getElementsByTagName("body")[0]
-        let canvasChart = document.createElement('canvas')
+        let canvasChart : any = document.createElement('canvas')
         canvasChart.id = "chart"
         canvasChart.width = 700
         canvasChart.height = 700
@@ -34,36 +34,39 @@ class World {
         canvasChart.style.marginLeft = this.width + "px"
         body.appendChild(canvasChart)
         this.chart = new Chart(canvasChart, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: ["0", "1", "3"],
                 datasets: [{
                     barPercentage: 1,
+                    pointRadius: 0,
                     label: 'uninfected',
-                    data: [1, 2, 3],
+                    data: [],
                     backgroundColor: '#0000ff'
                 },
                 {
                     barPercentage: 1,
+                    pointRadius: 0,
                     label: 'infected',
-                    data: [2, 3, 4],
+                    data: [],
                     backgroundColor: '#ffff00'
                 },
 
                 {
                     barPercentage: 1,
+                    pointRadius: 0,
                     label: 'deceased',
-                    data: [4, 5, 6],
+                    data: [],
                     backgroundColor: '#ff0000'
                 },
                 {
                     barPercentage: 1,
+                    pointRadius: 0,
                     label: 'recovered',
-                    data: [6, 7, 8],
+                    data: [],
                     backgroundColor: '#00ff00'
                 }]
             },
-            options: {
+            options: {                
                 tooltips: { enabled: false },
                 hover: { mode: null },
                 animation: {
@@ -72,7 +75,6 @@ class World {
                 responsiveAnimationDuration: 0,
                 responsive: false,
                 scales: {
-
                     xAxes: [{
                         stacked: true,
                     }],
@@ -102,12 +104,12 @@ class World {
         this.animationStep()
     }
     animationStep() {
-        let runAnimation = false;
+        let runAnimation = false
         //
-        let uninfected = 0;
-        let infected = 0;
-        let deceased = 0;
-        let recovered = 0;
+        let uninfected = 0
+        let infected = 0
+        let deceased = 0
+        let recovered = 0
         //
         var canvas: any = document.getElementById("canvas")
         var ctx = canvas.getContext("2d")
@@ -115,7 +117,7 @@ class World {
         for (let a: number = 0; a < this.persons.length; a++) {
             for (let b: number = 0; b < this.persons.length; b++) {
                 if (this.persons[a].state == "infected") {
-                    runAnimation = true;
+                    runAnimation = true
                     let dist = Math.sqrt(Math.pow((this.persons[a].xPosition - this.persons[b].xPosition), 2) + Math.pow((this.persons[a].yPosition - this.persons[b].yPosition), 2))
                     if (dist < this.persons[a].infection.reach) {
                         if (this.persons[b].state == "uninfected") {
@@ -125,28 +127,28 @@ class World {
                 }
             }
             if (this.persons[a].state == "uninfected") {
-                uninfected++;
+                uninfected++
             }
             if (this.persons[a].state == "infected") {
-                infected++;
+                infected++
             }
             if (this.persons[a].state == "deceased") {
-                deceased++;
+                deceased++
             }
             if (this.persons[a].state == "recovered") {
-                recovered++;
+                recovered++
             }
         }
-        this.graphData.push({ "uninfected": uninfected, "infected": infected, "deceased": deceased, "recovered": recovered });
+        this.graphData.push({ "uninfected": uninfected, "infected": infected, "deceased": deceased, "recovered": recovered })
 
         //convert data
-        let labels = [];
-        let uninfectedArray = [];
-        let infectedArray = [];
-        let deceasedArray = [];
-        let recoveredArray = [];
+        let labels = []
+        let uninfectedArray = []
+        let infectedArray = []
+        let deceasedArray = []
+        let recoveredArray = []
         for (let a = 0; a < this.graphData.length; a++) {
-            labels.push(a + "");
+            labels.push(a + "")
             uninfectedArray.push(this.graphData[a].uninfected)
             infectedArray.push(this.graphData[a].infected)
             deceasedArray.push(this.graphData[a].deceased)
@@ -159,12 +161,12 @@ class World {
         deceasedArray = convertArrayLenght(deceasedArray,20)
         recoveredArray = convertArrayLenght(recoveredArray,20)
 
-        this.chart.data.labels = labels;
-        this.chart.data.datasets[0].data = uninfectedArray;
-        this.chart.data.datasets[1].data = infectedArray;
-        this.chart.data.datasets[2].data = deceasedArray;
-        this.chart.data.datasets[3].data = recoveredArray;
-        this.chart.update();
+        this.chart.data.labels = labels
+        this.chart.data.datasets[0].data = uninfectedArray
+        this.chart.data.datasets[1].data = infectedArray
+        this.chart.data.datasets[2].data = deceasedArray
+        this.chart.data.datasets[3].data = recoveredArray
+        this.chart.update()
 
         for (let a: number = 0; a < this.persons.length; a++) {
             this.persons[a].stateChange()
@@ -178,10 +180,17 @@ class World {
         }
     }
 }
+class Controls{
+
+}
 class Infection {
     public duration: number
     public mortality: number
     public reach: number
+
+    //public state : string
+    //public exposure: number
+
     constructor(duration: number, mortality: number, reach: number) {
         this.duration = duration
         this.mortality = mortality
@@ -206,10 +215,10 @@ class Person {
     public state: string
 
     private infectionCounter: number = 0
-    private moveStep: number = 0;
+    private moveStep: number = 0
     private size: number = 5
-    private xMove: number;
-    private yMove: number;
+    private xMove: number
+    private yMove: number
 
     constructor(xPosition: number, yPosition: number, xPositionMax: number, yPositionMax: number, infection: Infection, mobility: Mobility, state: string = "uninfected") {
         this.xPosition = xPosition
@@ -241,20 +250,20 @@ class Person {
     stateChange() {
         // if target is reached create a new target
         if (this.moveStep == 0) {
-            let angle = Math.random() * Math.PI * 2;
-            this.xMove = Math.sin(angle) * this.mobility.speed;
-            this.yMove = Math.cos(angle) * this.mobility.speed;
+            let angle = Math.random() * Math.PI * 2
+            this.xMove = Math.sin(angle) * this.mobility.speed
+            this.yMove = Math.cos(angle) * this.mobility.speed
         }
-        this.moveStep++;
+        this.moveStep++
         if (this.moveStep > this.mobility.distance / this.mobility.speed) {
-            this.moveStep = 0;
+            this.moveStep = 0
         }
         //
         if (this.infectionCounter > this.infection.duration) {
             this.state = "recovered"
         }
         if (this.state == "infected") {
-            this.infectionCounter++;
+            this.infectionCounter++
             let d = Math.random()
             if (d < this.infection.mortality / this.infection.duration) {
                 this.state = "deceased"
@@ -294,6 +303,7 @@ function randomIntFromInterval(min: number, max: number) { // min and max includ
 
 function convertArrayLenght(inputArray: any, length: number):any {
     
+    //return inputArray    
     let myNewArray : any = []
     for (let a=0; a<length; a++)
     {
@@ -305,9 +315,9 @@ function convertArrayLenght(inputArray: any, length: number):any {
 // let's do it...
 //
 let speed: number = 30
-let world = new World(700, 700, 0.0003, speed) // width, height, density, framerate
-let infection = new Infection(100, 0.05, 15) // duration, mortality, reach
-let mobility = new Mobility(2, 200) // speed, distance
+let world = new World(700, 700, 0.0006, speed) // width, height, density, framerate
+let infection = new Infection(200, 0.15, 20) // duration, mortality, reach
+let mobility = new Mobility(4, 50) // speed, distance
 world.infection = infection
 world.mobility = mobility
 world.init()

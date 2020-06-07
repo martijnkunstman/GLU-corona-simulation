@@ -25,31 +25,34 @@ var World = /** @class */ (function () {
         canvasChart.style.marginLeft = this.width + "px";
         body.appendChild(canvasChart);
         this.chart = new Chart(canvasChart, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: ["0", "1", "3"],
                 datasets: [{
                         barPercentage: 1,
+                        pointRadius: 0,
                         label: 'uninfected',
-                        data: [1, 2, 3],
+                        data: [],
                         backgroundColor: '#0000ff'
                     },
                     {
                         barPercentage: 1,
+                        pointRadius: 0,
                         label: 'infected',
-                        data: [2, 3, 4],
+                        data: [],
                         backgroundColor: '#ffff00'
                     },
                     {
                         barPercentage: 1,
+                        pointRadius: 0,
                         label: 'deceased',
-                        data: [4, 5, 6],
+                        data: [],
                         backgroundColor: '#ff0000'
                     },
                     {
                         barPercentage: 1,
+                        pointRadius: 0,
                         label: 'recovered',
-                        data: [6, 7, 8],
+                        data: [],
                         backgroundColor: '#00ff00'
                     }]
             },
@@ -165,7 +168,14 @@ var World = /** @class */ (function () {
     };
     return World;
 }());
+var Controls = /** @class */ (function () {
+    function Controls() {
+    }
+    return Controls;
+}());
 var Infection = /** @class */ (function () {
+    //public state : string
+    //public exposure: number
     function Infection(duration, mortality, reach) {
         this.duration = duration;
         this.mortality = mortality;
@@ -265,6 +275,7 @@ function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 function convertArrayLenght(inputArray, length) {
+    //return inputArray    
     var myNewArray = [];
     for (var a = 0; a < length; a++) {
         myNewArray.push(inputArray[Math.round(a / length * inputArray.length)]);
@@ -275,9 +286,9 @@ function convertArrayLenght(inputArray, length) {
 // let's do it...
 //
 var speed = 30;
-var world = new World(700, 700, 0.0003, speed); // width, height, density, framerate
-var infection = new Infection(100, 0.05, 15); // duration, mortality, reach
-var mobility = new Mobility(2, 200); // speed, distance
+var world = new World(700, 700, 0.0006, speed); // width, height, density, framerate
+var infection = new Infection(200, 0.15, 20); // duration, mortality, reach
+var mobility = new Mobility(4, 50); // speed, distance
 world.infection = infection;
 world.mobility = mobility;
 world.init();
