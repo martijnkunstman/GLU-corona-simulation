@@ -311,8 +311,8 @@ function convertArrayLenght(inputArray, length) {
 var framerate = 30;
 var personSize = 3;
 var world = new World(700, 700, 0.005, framerate, personSize); // width, height, density, framerate, personSize
-var infection = new Infection(35, 0.33, 7); // duration, mortality, reach
-var mobility = new Mobility(1, 12); // speed, distance
+var infection = new Infection(40, 0.33, 7); // duration, mortality, reach
+var mobility = new Mobility(1, 13); // speed, distance
 world.infection = infection;
 world.mobility = mobility;
 world.init();
