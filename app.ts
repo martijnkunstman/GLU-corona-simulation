@@ -1,10 +1,12 @@
+//import * as dat from 'dat.gui'
+//import Chart from 'chart.js'
 //
 // classes
 //
 class World {
     public width: number
     public height: number
-    public denisty: number
+    public density: number
     public infection: Infection
     public mobility: Mobility
     public framerate: number
@@ -13,27 +15,24 @@ class World {
     private persons: any
     private graphData: any = []
     private first: number = 0
+    private animationRuns = false
     public chart: Chart
 
-    constructor(width: number, height: number, denisty: number, framerate: number, personSize: number) {
+    constructor(width: number, height: number, density: number, framerate: number, personSize: number) {
         this.width = width
         this.height = height
-        this.denisty = denisty
-        this.personCount = Math.round(width * height * denisty)
+        this.density = density
         this.persons = []
         this.framerate = 1000 / framerate
         this.personSize = personSize
     }
     init() {
-        let body = document.getElementsByTagName("body")[0]
+        let body = document.getElementById("container")
         let canvasChart: any = document.createElement('canvas')
         canvasChart.id = "chart"
         canvasChart.width = 700
         canvasChart.height = 700
-        canvasChart.style.zIndex = "2"
-        canvasChart.style.position = "absolute"
         canvasChart.style.border = "1px solid"
-        canvasChart.style.marginLeft = this.width + "px"
         body.appendChild(canvasChart)
         this.chart = new Chart(canvasChart, {
             type: 'line',
@@ -100,31 +99,28 @@ class World {
         canvas.id = "canvas"
         canvas.width = this.width
         canvas.height = this.height
-        canvas.style.zIndex = "1"
-        canvas.style.position = "absolute"
         canvas.style.border = "1px solid"
         body.appendChild(canvas)
-        let div = document.createElement('div')
-        div.id = "info"
-        body.appendChild(div)
-        document.getElementById("info").innerHTML = "persons: " + this.personCount
+        this.load()
+    }
+    load() {
+        this.first = 0
+        this.persons = []
+        this.graphData = []
+        this.personCount = this.width * this.height * 0.0001 * this.density
         for (let a: number = 0; a < this.personCount; a++) {
             let person = new Person(randomIntFromInterval(0, this.width), randomIntFromInterval(0, this.height), this.width, this.height, this.infection, this.mobility, "uninfected", this.personSize)
             this.persons.push(person)
         }
-        this.animationStep()
+        if (!this.animationRuns) {
+            this.animationStep()
+            this.animationRuns = true
+        }
     }
     animationStep() {
-        let runAnimation = false
-        this.first++;
-        if (this.first==2)
-        {
+        this.first++
+        if (this.first == 2) {
             this.persons[0].state = "infected"
-        }
-        //
-        if (this.first<3)
-        {
-            runAnimation = true
         }
         //
         let uninfected = 0
@@ -138,7 +134,6 @@ class World {
         for (let a: number = 0; a < this.persons.length; a++) {
             for (let b: number = 0; b < this.persons.length; b++) {
                 if (this.persons[a].state == "infected") {
-                    runAnimation = true
                     let dist = Math.sqrt(Math.pow((this.persons[a].xPosition - this.persons[b].xPosition), 2) + Math.pow((this.persons[a].yPosition - this.persons[b].yPosition), 2))
                     if (dist < this.persons[a].infection.reach + this.persons[a].size) {
                         if (this.persons[b].state == "uninfected") {
@@ -160,8 +155,9 @@ class World {
                 recovered++
             }
         }
-        this.graphData.push({ "uninfected": uninfected, "infected": infected, "deceased": deceased, "recovered": recovered })
-
+        if (this.first > 2 && infected > 0) {
+            this.graphData.push({ "uninfected": uninfected, "infected": infected, "deceased": deceased, "recovered": recovered })
+        }
         //convert data
         let labels = []
         let uninfectedArray = []
@@ -175,7 +171,7 @@ class World {
             deceasedArray.push(this.graphData[a].deceased)
             recoveredArray.push(this.graphData[a].recovered)
         }
-        let xaxisstep = 15;
+        let xaxisstep = 20
         labels = convertArrayLenght(labels, xaxisstep)
         uninfectedArray = convertArrayLenght(uninfectedArray, xaxisstep)
         infectedArray = convertArrayLenght(infectedArray, xaxisstep)
@@ -194,23 +190,19 @@ class World {
             this.persons[a].move()
             this.persons[a].draw(ctx)
         }
-        if (runAnimation) {
-            setTimeout(() => {
-                this.animationStep()
-            }, this.framerate)
-        }
-    }
-}
-class Controls {
 
+        setTimeout(() => {
+            this.animationStep()
+        }, this.framerate)
+
+    }
 }
 class Infection {
     public duration: number
     public mortality: number
     public reach: number
-
-    //public state : string
     //public exposure: number
+    //public icnubation: number
 
     constructor(duration: number, mortality: number, reach: number) {
         this.duration = duration
@@ -329,7 +321,8 @@ function randomIntFromInterval(min: number, max: number) { // min and max includ
 
 function convertArrayLenght(inputArray: any, length: number): any {
 
-    //return inputArray    
+    //return inputArray
+    length = length - 1
     let myNewArray: any = []
     for (let a = 0; a < length; a++) {
         myNewArray.push(inputArray[Math.floor(a / length * inputArray.length)])
@@ -341,10 +334,28 @@ function convertArrayLenght(inputArray: any, length: number): any {
 // let's do it...
 //
 let framerate: number = 30
-let personSize: number = 3;
-let world = new World(700, 700, 0.005, framerate, personSize) // width, height, density, framerate, personSize
-let infection = new Infection(40, 0.33, 7) // duration, mortality, reach
+let personSize: number = 6
+let world = new World(700, 700, 10, framerate, personSize) // width, height, density, framerate, personSize
+let infection = new Infection(200, 0.3, 12) // duration, mortality, reach
 let mobility = new Mobility(1, 13) // speed, distance
 world.infection = infection
 world.mobility = mobility
 world.init()
+//
+// dat.gui
+//
+let gui = new dat.GUI()
+let slider1 = gui.add(world, 'density').min(1).max(20).step(1)
+let slider2 = gui.add(world, 'personSize').min(2).max(10).step(1)
+let slider3 = gui.add(world.infection, 'duration').min(50).max(500).step(50)
+let slider4 = gui.add(world.infection, 'mortality').min(0).max(1).step(0.1)
+let slider5 = gui.add(world.infection, 'reach').min(1).max(20).step(1)
+let slider6 = gui.add(world.mobility, 'speed').min(0).max(2).step(0.1)
+let slider7 = gui.add(world.mobility, 'distance').min(1).max(50).step(1)
+slider1.onChange(function () { world.load() })
+slider2.onChange(function () { world.load() })
+slider3.onChange(function () { world.load() })
+slider4.onChange(function () { world.load() })
+slider5.onChange(function () { world.load() })
+slider6.onChange(function () { world.load() })
+slider7.onChange(function () { world.load() })

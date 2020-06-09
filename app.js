@@ -1,29 +1,28 @@
 "use strict";
+//import * as dat from 'dat.gui'
+//import Chart from 'chart.js'
 //
 // classes
 //
 var World = /** @class */ (function () {
-    function World(width, height, denisty, framerate, personSize) {
+    function World(width, height, density, framerate, personSize) {
         this.graphData = [];
         this.first = 0;
+        this.animationRuns = false;
         this.width = width;
         this.height = height;
-        this.denisty = denisty;
-        this.personCount = Math.round(width * height * denisty);
+        this.density = density;
         this.persons = [];
         this.framerate = 1000 / framerate;
         this.personSize = personSize;
     }
     World.prototype.init = function () {
-        var body = document.getElementsByTagName("body")[0];
+        var body = document.getElementById("container");
         var canvasChart = document.createElement('canvas');
         canvasChart.id = "chart";
         canvasChart.width = 700;
         canvasChart.height = 700;
-        canvasChart.style.zIndex = "2";
-        canvasChart.style.position = "absolute";
         canvasChart.style.border = "1px solid";
-        canvasChart.style.marginLeft = this.width + "px";
         body.appendChild(canvasChart);
         this.chart = new Chart(canvasChart, {
             type: 'line',
@@ -88,30 +87,29 @@ var World = /** @class */ (function () {
         canvas.id = "canvas";
         canvas.width = this.width;
         canvas.height = this.height;
-        canvas.style.zIndex = "1";
-        canvas.style.position = "absolute";
         canvas.style.border = "1px solid";
         body.appendChild(canvas);
-        var div = document.createElement('div');
-        div.id = "info";
-        body.appendChild(div);
-        document.getElementById("info").innerHTML = "persons: " + this.personCount;
+        this.load();
+    };
+    World.prototype.load = function () {
+        this.first = 0;
+        this.persons = [];
+        this.graphData = [];
+        this.personCount = this.width * this.height * 0.0001 * this.density;
         for (var a = 0; a < this.personCount; a++) {
             var person = new Person(randomIntFromInterval(0, this.width), randomIntFromInterval(0, this.height), this.width, this.height, this.infection, this.mobility, "uninfected", this.personSize);
             this.persons.push(person);
         }
-        this.animationStep();
+        if (!this.animationRuns) {
+            this.animationStep();
+            this.animationRuns = true;
+        }
     };
     World.prototype.animationStep = function () {
         var _this = this;
-        var runAnimation = false;
         this.first++;
         if (this.first == 2) {
             this.persons[0].state = "infected";
-        }
-        //
-        if (this.first < 3) {
-            runAnimation = true;
         }
         //
         var uninfected = 0;
@@ -125,7 +123,6 @@ var World = /** @class */ (function () {
         for (var a = 0; a < this.persons.length; a++) {
             for (var b = 0; b < this.persons.length; b++) {
                 if (this.persons[a].state == "infected") {
-                    runAnimation = true;
                     var dist = Math.sqrt(Math.pow((this.persons[a].xPosition - this.persons[b].xPosition), 2) + Math.pow((this.persons[a].yPosition - this.persons[b].yPosition), 2));
                     if (dist < this.persons[a].infection.reach + this.persons[a].size) {
                         if (this.persons[b].state == "uninfected") {
@@ -147,7 +144,9 @@ var World = /** @class */ (function () {
                 recovered++;
             }
         }
-        this.graphData.push({ "uninfected": uninfected, "infected": infected, "deceased": deceased, "recovered": recovered });
+        if (this.first > 2 && infected > 0) {
+            this.graphData.push({ "uninfected": uninfected, "infected": infected, "deceased": deceased, "recovered": recovered });
+        }
         //convert data
         var labels = [];
         var uninfectedArray = [];
@@ -161,7 +160,7 @@ var World = /** @class */ (function () {
             deceasedArray.push(this.graphData[a].deceased);
             recoveredArray.push(this.graphData[a].recovered);
         }
-        var xaxisstep = 15;
+        var xaxisstep = 20;
         labels = convertArrayLenght(labels, xaxisstep);
         uninfectedArray = convertArrayLenght(uninfectedArray, xaxisstep);
         infectedArray = convertArrayLenght(infectedArray, xaxisstep);
@@ -178,22 +177,15 @@ var World = /** @class */ (function () {
             this.persons[a].move();
             this.persons[a].draw(ctx);
         }
-        if (runAnimation) {
-            setTimeout(function () {
-                _this.animationStep();
-            }, this.framerate);
-        }
+        setTimeout(function () {
+            _this.animationStep();
+        }, this.framerate);
     };
     return World;
 }());
-var Controls = /** @class */ (function () {
-    function Controls() {
-    }
-    return Controls;
-}());
 var Infection = /** @class */ (function () {
-    //public state : string
     //public exposure: number
+    //public icnubation: number
     function Infection(duration, mortality, reach) {
         this.duration = duration;
         this.mortality = mortality;
@@ -297,7 +289,8 @@ function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 function convertArrayLenght(inputArray, length) {
-    //return inputArray    
+    //return inputArray
+    length = length - 1;
     var myNewArray = [];
     for (var a = 0; a < length; a++) {
         myNewArray.push(inputArray[Math.floor(a / length * inputArray.length)]);
@@ -309,10 +302,28 @@ function convertArrayLenght(inputArray, length) {
 // let's do it...
 //
 var framerate = 30;
-var personSize = 3;
-var world = new World(700, 700, 0.005, framerate, personSize); // width, height, density, framerate, personSize
-var infection = new Infection(40, 0.33, 7); // duration, mortality, reach
+var personSize = 6;
+var world = new World(700, 700, 10, framerate, personSize); // width, height, density, framerate, personSize
+var infection = new Infection(200, 0.3, 12); // duration, mortality, reach
 var mobility = new Mobility(1, 13); // speed, distance
 world.infection = infection;
 world.mobility = mobility;
 world.init();
+//
+// dat.gui
+//
+var gui = new dat.GUI();
+var slider1 = gui.add(world, 'density').min(1).max(20).step(1);
+var slider2 = gui.add(world, 'personSize').min(2).max(10).step(1);
+var slider3 = gui.add(world.infection, 'duration').min(50).max(500).step(50);
+var slider4 = gui.add(world.infection, 'mortality').min(0).max(1).step(0.1);
+var slider5 = gui.add(world.infection, 'reach').min(1).max(20).step(1);
+var slider6 = gui.add(world.mobility, 'speed').min(0).max(2).step(0.1);
+var slider7 = gui.add(world.mobility, 'distance').min(1).max(50).step(1);
+slider1.onChange(function () { world.load(); });
+slider2.onChange(function () { world.load(); });
+slider3.onChange(function () { world.load(); });
+slider4.onChange(function () { world.load(); });
+slider5.onChange(function () { world.load(); });
+slider6.onChange(function () { world.load(); });
+slider7.onChange(function () { world.load(); });

@@ -1,6 +1,26 @@
 html,
 body {
     margin: 0;
-    height: 100%;
-    overflow: hidden
+}
+#container{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; 
+    box-sizing: border-box;  
+}
+#canvas{
+    width: 100vmin;
+    height: 100vmin;
+    box-sizing: border-box;
+}
+#chart{
+    width: 100vmin;
+    height: 100vmin;
+    box-sizing: border-box;
+}
+.save-row{
+    display: none;
+}
+.close-button{
+    display: none;
 }
