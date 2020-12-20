@@ -1,5 +1,3 @@
-//import * as dat from 'dat.gui'
-//import Chart from 'chart.js'
 //
 // classes
 //
