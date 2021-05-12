@@ -20,7 +20,7 @@
   "dependencies": {
     "@types/chart.js": "^2.9.21",
     "@types/dat.gui": "^0.7.5",
-    "chart.js": "^2.9.3",
+    "chart.js": "^2.9.4",
     "dat.gui": "^0.7.7",
     "typescript": "^3.9.5"
   }
