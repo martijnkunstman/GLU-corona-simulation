@@ -1,6 +1,4 @@
 "use strict";
-//import * as dat from 'dat.gui'
-//import Chart from 'chart.js'
 //
 // classes
 //
@@ -18,6 +16,12 @@ var World = /** @class */ (function () {
     }
     World.prototype.init = function () {
         var body = document.getElementById("container");
+        var canvas = document.createElement('canvas');
+        canvas.id = "canvas";
+        canvas.width = this.width;
+        canvas.height = this.height;
+        canvas.style.border = "1px solid";
+        body.appendChild(canvas);
         var canvasChart = document.createElement('canvas');
         canvasChart.id = "chart";
         canvasChart.width = 700;
@@ -83,12 +87,6 @@ var World = /** @class */ (function () {
                 }
             }
         });
-        var canvas = document.createElement('canvas');
-        canvas.id = "canvas";
-        canvas.width = this.width;
-        canvas.height = this.height;
-        canvas.style.border = "1px solid";
-        body.appendChild(canvas);
         this.load();
     };
     World.prototype.load = function () {
@@ -327,3 +325,4 @@ slider4.onChange(function () { world.load(); });
 slider5.onChange(function () { world.load(); });
 slider6.onChange(function () { world.load(); });
 slider7.onChange(function () { world.load(); });
+console.log("ok");

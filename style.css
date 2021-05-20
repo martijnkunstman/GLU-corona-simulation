@@ -2,20 +2,23 @@ html,
 body {
     margin: 0;
 }
+canvas{
+    margin: 2vmin;
+}
 #container{
     display: flex;
     justify-content: center;
     flex-wrap: wrap; 
-    box-sizing: border-box;  
+    box-sizing: border-box; 
 }
 #canvas{
-    width: 100vmin;
-    height: 100vmin;
+    width: 96vmin;
+    height: 96vmin;
     box-sizing: border-box;
 }
 #chart{
-    width: 100vmin;
-    height: 100vmin;
+    width: 96vmin;
+    height: 96vmin;
     box-sizing: border-box;
 }
 .save-row{

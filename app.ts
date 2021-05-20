@@ -26,6 +26,12 @@ class World {
     }
     init() {
         let body = document.getElementById("container")
+        let canvas = document.createElement('canvas')
+        canvas.id = "canvas"
+        canvas.width = this.width
+        canvas.height = this.height
+        canvas.style.border = "1px solid"
+        body.appendChild(canvas)
         let canvasChart: any = document.createElement('canvas')
         canvasChart.id = "chart"
         canvasChart.width = 700
@@ -92,13 +98,7 @@ class World {
                     }]
                 }
             }
-        })
-        let canvas = document.createElement('canvas')
-        canvas.id = "canvas"
-        canvas.width = this.width
-        canvas.height = this.height
-        canvas.style.border = "1px solid"
-        body.appendChild(canvas)
+        })        
         this.load()
     }
     load() {
@@ -357,3 +357,6 @@ slider4.onChange(function () { world.load() })
 slider5.onChange(function () { world.load() })
 slider6.onChange(function () { world.load() })
 slider7.onChange(function () { world.load() })
+
+console.log("ok");
+
